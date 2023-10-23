@@ -7,7 +7,7 @@ const itemDescInput = document.getElementById("item-description");
 const itemPriceInput = document.getElementById("item-price");
 const itemQuantityInput = document.getElementById("item-quantity");
 const addItemButton = document.getElementById("add-item");
-const itemDetailsDiv = document.getElementById("item-details");
+const itemDetails = document.getElementById("item-details");
 
 // Function to add an item
 function addItem() {
@@ -16,10 +16,10 @@ function addItem() {
      const itemPrice = itemPriceInput.value;
      const itemQuantity = itemQuantityInput.value;
 
-     if (!itemName || !itemDesc || !itemPrice || !itemQuantity) {
-          alert("Please fill in all fields.");
-          return;
-     }
+     // if (!itemName || !itemDesc || !itemPrice || !itemQuantity) {
+     //      alert("Please fill in all fields.");
+     //      return;
+     // }
 
      const item = {
           name: itemName,
@@ -29,43 +29,107 @@ function addItem() {
      };
 
      // Send the item data to the server using Axios POST request
-     axios.post('https://crudcrud.com/api/f65b2e7bff5146d88aa90ead71c758c8/generalStore', item)
+     axios.post('https://crudcrud.com/api/9f1a249d4d314188a60040d32a9ae1aa/generalStore', item)
           .then((response) => {
                console.log('Item added successfully:', response.data);
-               items.push(item);
-               displayItems();
+               items.push(item)
                clearInputs();
           })
           .catch((error) => {
-               console.error('Error adding item:', error);
+               console.log('Error adding item:', error);
           });
+
+
+
+     let itemDsiplay = document.createElement('li')
+     itemDsiplay.textContent = `Item: ${itemName} Description: ${itemDesc} Price: Rs ${itemPrice} Qty: ${itemQuantity}`
+
+     let btn1 = document.createElement('button')
+     let btn2 = document.createElement('button')
+     let btn3 = document.createElement('button')
+     btn1.textContent = 'Buy 1'
+     btn1.id = 'btn1'
+     btn2.textContent = 'Buy 2'
+     btn2.id = 'btn2'
+     btn3.textContent = 'Buy 3'
+     btn3.id = 'btn3'
+
+     btn1.onclick = function (event) {
+          event.target.parentElement.textContent = `Item: ${itemName} Description: ${itemDesc} Price: Rs ${itemPrice} Qty: ${parseInt(itemQuantity) - 1}`
+          reduceQuantity(item, 1, itemContainer)
+     }
+
+     btn2.onclick = function (event) {
+          event.target.parentElement.textContent = `Item: ${itemName} Description: ${itemDesc} Price: Rs ${itemPrice} Qty: ${parseInt(itemQuantity) - 2}`
+          reduceQuantity(item, 2, itemContainer)
+     }
+
+     btn3.onclick = function (event) {
+          event.target.parentElement.textContent = `Item: ${itemName} Description: ${itemDesc} Price: Rs ${itemPrice} Qty: ${parseInt(itemQuantity) - 3}`
+          reduceQuantity(item, 3, itemContainer)
+     }
+
+     // btn2.onclick = function(event){}
+
+     itemDsiplay.appendChild(btn1)
+     itemDsiplay.appendChild(btn2)
+     itemDsiplay.appendChild(btn3)
+     itemDetails.appendChild(itemDsiplay)
 }
 
-// Function to display items
-function displayItems() {
-     itemDetailsDiv.innerHTML = "";
+function displayItems(items) {
+     itemDetails.innerHTML = '';
      items.forEach((item, index) => {
-          const itemDiv = document.createElement("div");
-          itemDiv.innerHTML = `
-            <p><b>Item Name:</b> ${item.name}</p>
-            <p><b>Description:</b> ${item.description}</p>
-            <p><b>Price:</b> $${item.price}</p>
-            <p><b>Quantity:</b> ${item.quantity}</p>
-            <button onclick="buyItem(${index}, 1)">Buy 1</button>
-            <button onclick="buyItem(${index}, 2)">Buy 2</button>
-            <button onclick="buyItem(${index}, 3)">Buy 3</button>
-        `;
-          itemDetailsDiv.appendChild(itemDiv);
+          const itemContainer = document.createElement('li');
+          itemContainer.textContent = `Item: ${item.name} Description: ${item.description} Price: Rs ${item.price} Qty: ${item.quantity}`;
+
+          let btn1 = document.createElement('button');
+          btn1.textContent = 'Buy 1';
+          btn1.style.margin = '5px'
+          btn1.onclick = function () {
+               // Call the corresponding function to reduce the quantity by 1
+               reduceQuantity(item, 1, itemContainer);
+          }
+
+          let btn2 = document.createElement('button');
+          btn2.textContent = 'Buy 2';
+          btn2.style.margin = '5px'
+          btn2.onclick = function () {
+               // Call the corresponding function to reduce the quantity by 2
+               reduceQuantity(item, 2, itemContainer);
+          }
+
+          let btn3 = document.createElement('button');
+          btn3.textContent = 'Buy 3';
+          btn3.style.margin = '5px'
+          btn3.onclick = function () {
+               // Call the corresponding function to reduce the quantity by 3
+               reduceQuantity(item, 3, itemContainer);
+          }
+
+          itemContainer.appendChild(btn1);
+          itemContainer.appendChild(btn2);
+          itemContainer.appendChild(btn3);
+          itemDetails.appendChild(itemContainer);
      });
 }
 
-// Function to buy an item
-function buyItem(index, quantityToBuy) {
-     if (items[index].quantity >= quantityToBuy) {
-          items[index].quantity -= quantityToBuy;
-          displayItems();
-     } else {
-          alert("Not enough quantity available.");
+// Function to reduce quantity
+function reduceQuantity(item, amount, itemContainer) {
+     // Make sure the quantity doesn't go below 0
+     if (item.quantity >= amount) {
+          item.quantity -= amount;
+
+          // Update the item data on the server using Axios PUT request
+          axios.put(`https://crudcrud.com/api/9f1a249d4d314188a60040d32a9ae1aa/generalStore/${item._id}`, item)
+               .then((response) => {
+                    console.log('Item updated successfully:', response.data);
+                    // Refresh the displayed items
+                    itemContainer.textContent = `Item: ${item.name} Description: ${item.description} Price: Rs ${item.price} Qty: ${item.quantity}`;
+               })
+               .catch((error) => {
+                    console.log('Error updating item:', error);
+               });
      }
 }
 
@@ -82,14 +146,14 @@ addItemButton.addEventListener("click", addItem);
 
 // Function to retrieve items from the server using Axios GET request
 function retrieveItems() {
-     axios.get('https://crudcrud.com/api/f65b2e7bff5146d88aa90ead71c758c8/generalStore')
+     axios.get('https://crudcrud.com/api/9f1a249d4d314188a60040d32a9ae1aa/generalStore')
           .then((response) => {
                console.log('Items retrieved successfully:', response.data);
                items = response.data;
-               displayItems(); 
+               displayItems(items)
           })
           .catch((error) => {
-               console.error('Error retrieving items:', error);
+               console.log('Error retrieving items:', error);
           });
 }
 
