@@ -10,16 +10,11 @@ const addItemButton = document.getElementById("add-item");
 const itemDetails = document.getElementById("item-details");
 
 // Function to add an item
-function addItem() {
+async function addItem() {
      const itemName = itemNameInput.value;
      const itemDesc = itemDescInput.value;
      const itemPrice = itemPriceInput.value;
      const itemQuantity = itemQuantityInput.value;
-
-     // if (!itemName || !itemDesc || !itemPrice || !itemQuantity) {
-     //      alert("Please fill in all fields.");
-     //      return;
-     // }
 
      const item = {
           name: itemName,
@@ -28,18 +23,16 @@ function addItem() {
           quantity: itemQuantity
      };
 
-     // Send the item data to the server using Axios POST request
-     axios.post('https://crudcrud.com/api/9f1a249d4d314188a60040d32a9ae1aa/generalStore', item)
-          .then((response) => {
-               console.log('Item added successfully:', response.data);
-               items.push(item)
-               clearInputs();
-          })
-          .catch((error) => {
-               console.log('Error adding item:', error);
-          });
-
-
+     try {
+          // Send the item data to the server using Axios POST request
+          const response = await axios.post('https://crudcrud.com/api/641037f4ea0b46d4be35fc44bbadfebc/generalStore', item)
+          console.log('Item added successfully:', response.data)
+          items.push(item)
+          clearInputs()
+     }
+     catch (error) {
+          console.log('Error adding item:', error)
+     }
 
      let itemDsiplay = document.createElement('li')
      itemDsiplay.textContent = `Item: ${itemName} Description: ${itemDesc} Price: Rs ${itemPrice} Qty: ${itemQuantity}`
@@ -115,21 +108,21 @@ function displayItems(items) {
 }
 
 // Function to reduce quantity
-function reduceQuantity(item, amount, itemContainer) {
+async function reduceQuantity(item, amount, itemContainer) {
      // Make sure the quantity doesn't go below 0
      if (item.quantity >= amount) {
           item.quantity -= amount;
-
-          // Update the item data on the server using Axios PUT request
-          axios.put(`https://crudcrud.com/api/9f1a249d4d314188a60040d32a9ae1aa/generalStore/${item._id}`, item)
-               .then((response) => {
-                    console.log('Item updated successfully:', response.data);
-                    // Refresh the displayed items
-                    itemContainer.textContent = `Item: ${item.name} Description: ${item.description} Price: Rs ${item.price} Qty: ${item.quantity}`;
-               })
-               .catch((error) => {
-                    console.log('Error updating item:', error);
-               });
+          const id = item._id
+          delete item._id
+          try {
+               // Update the item data on the server using Axios PUT request
+               const response = await axios.put(`https://crudcrud.com/api/641037f4ea0b46d4be35fc44bbadfebc/generalStore/${id}`, item)
+               console.log('Item updated successfully:', response.data)
+               await retrieveItems()
+          }
+          catch (error) {
+               console.log('Error updating item:', error);
+          }
      }
 }
 
@@ -145,16 +138,16 @@ function clearInputs() {
 addItemButton.addEventListener("click", addItem);
 
 // Function to retrieve items from the server using Axios GET request
-function retrieveItems() {
-     axios.get('https://crudcrud.com/api/9f1a249d4d314188a60040d32a9ae1aa/generalStore')
-          .then((response) => {
-               console.log('Items retrieved successfully:', response.data);
-               items = response.data;
-               displayItems(items)
-          })
-          .catch((error) => {
-               console.log('Error retrieving items:', error);
-          });
+async function retrieveItems() {
+     try {
+          const response = await axios.get('https://crudcrud.com/api/641037f4ea0b46d4be35fc44bbadfebc/generalStore')
+          console.log('Items retrieved successfully:', response.data);
+          items = response.data;
+          displayItems(items)
+     }
+     catch (error) {
+          console.log('Error retrieving items:', error)
+     }
 }
 
 // Call retrieveItems to get the initial data from the server
